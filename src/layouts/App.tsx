@@ -1,4 +1,7 @@
 import { meses, headers, participantes } from "../utils/data"
+import { icons } from "../utils/icons"
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import ReportePDF from "../components/ReportePDF";
 
 import { useState } from "react"
 
@@ -11,6 +14,11 @@ interface IItem {
   predicador: string
 }
 
+const datosEjemplo = [
+  { id:0, fecha: "11/06 Mie", hora: "7:00 PM", tipo: "Culto Juvenil", director: "Juan P Marquez", predicador: "Rodrigo M" },
+  { id:1, fecha: "14/06 Sab", hora: "5:00 PM", tipo: "Ayuno", director: "Participación", predicador: "Participación" },
+];
+
 
 function App() {
 
@@ -18,6 +26,7 @@ function App() {
   const [month, setMonth] = useState<string>(meses[new Date().getMonth()])
   const [year, setYear] = useState<string>(new Date().getFullYear().toString())
   const [filas, setFilas] = useState(1)
+  const [isDelete, setIsDelete] = useState(false)
 
   const [items, setItems] = useState<IItem[]>([{
     id: 0,
@@ -49,6 +58,23 @@ function App() {
     setItems([...items, nuevoItem])
   }
 
+  function agregarFilaId(index: number) {
+    setFilas(filas+1)
+    const nuevoItem: IItem = {
+      id: filas,
+      fecha: "",
+      hora: "",
+      tipo: "",
+      director: "",
+      predicador: ""
+    }
+    setItems(prevItems => {
+      const copiaItems = [...prevItems];
+      copiaItems.splice(index + 1, 0, nuevoItem);
+      return copiaItems;
+    })
+  }
+
   function modificar(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, campo: keyof IItem, item: IItem) {
     const nuevosItems = items.map((i: IItem) => 
       i.id === item.id ? { ...i, [campo]: e.target.value } : i
@@ -61,13 +87,11 @@ function App() {
       alert("No puedes eliminar la última fila")
       return;
     }
-    console.log(id)
-    const nuevosItems = items.filter(item => item.id !== id);
-    setItems(nuevosItems);
+    setItems(prevItems => prevItems.filter(item => item.id !== id));
   }
 
   return (
-    <div className="flex flex-col items-center h-screen bg-gray-200 gap-2">
+    <div className="min-h-screen pb-20 flex flex-col items-center bg-gray-200 gap-2">
       <h1 className="pt-5 text-2xl font-bold text-center">Cronograma Iglesia del Zulia</h1>
       <div id="config" className="flex gap-3 flex-col sm:flex-row items-center">
         <label htmlFor="code" className="flex gap-2 items-center">
@@ -88,18 +112,11 @@ function App() {
             value={month}
             onChange={(e) => setMonth(e.target.value)}
           >
-            <option value="Enero">Enero</option>
-            <option value="Febrero">Febrero</option>
-            <option value="Marzo">Marzo</option>
-            <option value="Abril">Abril</option>
-            <option value="Mayo">Mayo</option>
-            <option value="Junio">Junio</option>
-            <option value="Julio">Julio</option>
-            <option value="Agosto">Agosto</option>
-            <option value="Septiembre">Septiembre</option>
-            <option value="Octubre">Octubre</option>
-            <option value="Noviembre">Noviembre</option>
-            <option value="Diciembre">Diciembre</option>
+            {
+              meses.map((mes, index) => (
+                <option key={index} value={mes}>{mes}</option>
+              ))
+            }
           </select>
         </label>
         <label htmlFor="year" className="flex gap-2 items-center">
@@ -114,7 +131,7 @@ function App() {
         </label>
       </div>
 
-      <div id="tabla" className="w-full overflow-x-auto flex md:justify-center">
+      <div id="tabla" className="w-full flex md:justify-center">
         <table className="border-2 border-gray-300 rounded-md p-2 mt-2 border-collapse overflow-x-auto">
           <thead>
             <tr>
@@ -123,12 +140,19 @@ function App() {
                   <th key={header.header} className={`p-2 border-2 text-lg ${header.style}`}>{header.header}</th>
                 ))
               }
-              <th className="border-2 w-8 text-center align-middle"><svg className="m-auto"  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007h16z" /><path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005h4z" /></svg></th>
+              <th className="border-2 w-8 text-center align-middle hover:bg-blue-400">
+                <button 
+                  className="h-full flex justify-center items-center w-full cursor-pointer"
+                  onClick={() => setIsDelete(!isDelete)}
+                >
+                  { isDelete ? icons.Delete : icons.Add }
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>
             {
-              items.map(item => (
+              items.map((item, index) => (
                 <tr key={item.id} className="h-10">
                   <td className="border-2 text-center align-middle">
                     <input 
@@ -180,12 +204,20 @@ function App() {
                     </select>
                   </td>
                   <td className="border-2 hover:bg-red-600">
-                    <button 
-                      className="h-full flex justify-center items-center w-full cursor-pointer" 
-                      onClick={() => eliminarFila(item.id)}
-                    >
-                      <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007h16z" /><path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005h4z" /></svg>
-                    </button>
+                    { isDelete
+                      ? <button 
+                          className="h-full flex justify-center items-center w-full cursor-pointer" 
+                          onClick={() => eliminarFila(item.id)}
+                        >
+                          {icons.Delete}
+                        </button>
+                      :  <button 
+                          className="h-full flex justify-center items-center w-full cursor-pointer" 
+                          onClick={() => agregarFilaId(index)}
+                        >
+                          {icons.Add}
+                        </button>
+                    }
                   </td>
                 </tr>
               ))
@@ -197,7 +229,7 @@ function App() {
         className="border-2 font-bold rounded-md p-2 px-5 mt-2 bg-blue-400 hover:bg-black hover:text-white cursor-pointer"
         onClick={agregarFila}
       >
-        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  strokeWidth="2"  strokeLinecap="round"  strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+        {icons.Add}
       </button>
 
       <button 
@@ -206,6 +238,13 @@ function App() {
       >
         DESCARGAR
       </button>
+
+      <PDFDownloadLink
+        document={<ReportePDF mes="Junio" anio="2025" datos={datosEjemplo} />}
+        fileName="cronograma.pdf"
+      >
+        {({ loading }) => (loading ? 'Generando PDF...' : 'Descargar PDF')}
+      </PDFDownloadLink>
 
     </div>
   )
