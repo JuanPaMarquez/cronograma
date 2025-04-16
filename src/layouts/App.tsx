@@ -1,7 +1,8 @@
 import { meses, headers, participantes } from "../utils/data"
 import { icons } from "../utils/icons"
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import ReportePDF from "../components/ReportePDF";
+// import { PDFDownloadLink } from '@react-pdf/renderer';
+// import ReportePDF from "../components/ReportePDF";
+import { generarPDF } from "../components/generarPDF";
 
 import { useState } from "react"
 
@@ -14,12 +15,6 @@ interface IItem {
   predicador: string
 }
 
-const datosEjemplo = [
-  { id:0, fecha: "11/06 Mie", hora: "7:00 PM", tipo: "Culto Juvenil", director: "Juan P Marquez", predicador: "Rodrigo M" },
-  { id:1, fecha: "14/06 Sab", hora: "5:00 PM", tipo: "Ayuno", director: "Participación", predicador: "Participación" },
-];
-
-
 function App() {
 
   const [code, setCode] = useState<string>('C22')
@@ -27,23 +22,35 @@ function App() {
   const [year, setYear] = useState<string>(new Date().getFullYear().toString())
   const [filas, setFilas] = useState(1)
   const [isDelete, setIsDelete] = useState(false)
+  // const [isGenerate, setIsGenerate] = useState(false)
 
   const [items, setItems] = useState<IItem[]>([{
     id: 0,
     fecha: "",
     hora: "",
     tipo: "",
-    director: "",
-    predicador: ""
+    director: participantes[0],
+    predicador: participantes[0]
   }])
 
-  function handleSchedule() {
-    console.log("codigo: ", code)
-    console.log("mes: ", month)
-    console.log("año: ", year)
+  // function handleSchedule() {
+  //   setIsGenerate(true)
+  // }
 
-    console.log(items)
-  }
+  const handleClick = async () => {
+    const pdfBytes = await generarPDF({ mes: month, anio: year, datos: items });
+  
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    // Crear un enlace temporal para descargar el archivo
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Cronograma Iglesia Cristiana (${code}) ${month} ${year}.pdf`; // Nombre del archivo
+    link.click();
+
+    // Liberar el objeto URL después de la descarga
+    URL.revokeObjectURL(url);
+  };
 
   function agregarFila() {
     setFilas(filas+1)
@@ -52,8 +59,8 @@ function App() {
       fecha: "",
       hora: "",
       tipo: "",
-      director: "",
-      predicador: ""
+      director: participantes[0],
+      predicador: participantes[0]
     }
     setItems([...items, nuevoItem])
   }
@@ -65,8 +72,8 @@ function App() {
       fecha: "",
       hora: "",
       tipo: "",
-      director: "",
-      predicador: ""
+      director: participantes[0],
+      predicador: participantes[0]
     }
     setItems(prevItems => {
       const copiaItems = [...prevItems];
@@ -234,17 +241,27 @@ function App() {
 
       <button 
         className="border-2 font-bold rounded-md p-2 px-5 mt-2 hover:bg-black hover:text-white cursor-pointer"
-        onClick={handleSchedule}
+        onClick={handleClick}
       >
-        DESCARGAR
+        Generar PDF
       </button>
-
-      <PDFDownloadLink
-        document={<ReportePDF mes="Junio" anio="2025" datos={datosEjemplo} />}
-        fileName="cronograma.pdf"
-      >
-        {({ loading }) => (loading ? 'Generando PDF...' : 'Descargar PDF')}
-      </PDFDownloadLink>
+{/* 
+      {isGenerate && (
+        <PDFDownloadLink
+          document={<ReportePDF mes={month} anio={year} datos={items} />}
+          fileName={`Cronograma Iglesia Cristiana (${code}) ${month} ${year}.pdf`}
+          style={{
+            marginTop: 10,
+            padding: '8px 16px',
+            backgroundColor: '#1a237e',
+            color: '#fff',
+            borderRadius: 4,
+            textDecoration: 'none'
+          }}
+        >
+          {({ loading }) => (loading ? 'Generando PDF...' : 'Descargar PDF')}
+        </PDFDownloadLink>
+      )} */}
 
     </div>
   )
