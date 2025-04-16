@@ -36,9 +36,9 @@ const ReportePDF = ({ mes, anio, datos }: IReportePDFProps) => {
         </View>
 
         {/* Tabla con bordes colapsados */}
-        <View style={styles.table}>
+        <View style={styles.tableContainer}>
           {/* Encabezado de la tabla */}
-          <View style={styles.tableHeader}>
+          <View fixed style={styles.tableHeader}>
             <Text style={[styles.tableHeaderCell, styles.colFecha]}>FECHA</Text>
             <Text style={[styles.tableHeaderCell, styles.colHora]}>HORA</Text>
             <Text style={[styles.tableHeaderCell, styles.colTipo]}>TIPO</Text>
@@ -47,16 +47,19 @@ const ReportePDF = ({ mes, anio, datos }: IReportePDFProps) => {
           </View>
 
           {/* Filas de datos */}
-          {datos.map((item, idx) => (
-            <View style={styles.tableRow} key={idx}>
-              <Text style={[styles.tableCell, styles.colFecha, {backgroundColor: `${item.color}`}]}>{item.fecha}</Text>
-              <Text style={[styles.tableCell, styles.colHora, {backgroundColor: `${item.color}`}]}>{item.hora}</Text>
-              <Text style={[styles.tableCell, styles.colTipo, {backgroundColor: `${item.color}`}]}>{item.tipo}</Text>
-              <Text style={[styles.tableCell, styles.colDirector, {backgroundColor: `${item.color}`}]}>{item.director}</Text>
-              <Text style={[styles.tableCell, styles.colPredicador, {backgroundColor: `${item.color}`}]}>{item.predicador}</Text>
-            </View>
-          ))}
+          <View style={styles.tableBody}>
+            {datos.map((item, idx) => (
+              <View style={styles.tableRow} key={idx} wrap={false}>
+                <Text style={[styles.tableCell, styles.colFecha, {backgroundColor: `${item.color}`}]}>{item.fecha}</Text>
+                <Text style={[styles.tableCell, styles.colHora, {backgroundColor: `${item.color}`}]}>{item.hora}</Text>
+                <Text style={[styles.tableCell, styles.colTipo, {backgroundColor: `${item.color}`}]}>{item.tipo}</Text>
+                <Text style={[styles.tableCell, styles.colDirector, {backgroundColor: `${item.color}`}]}>{item.director}</Text>
+                <Text style={[styles.tableCell, styles.colPredicador, {backgroundColor: `${item.color}`}]}>{item.predicador}</Text>
+              </View>
+            ))}
+          </View>
         </View>
+        <Text style={styles.footerText}>Cronograma Aprobado por los Pastores Armando Marquez Y Stella Pulido.</Text>
       </Page>
     </Document>
   );
@@ -74,7 +77,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 19.5,
   },
   logo: {
     width: 100,
@@ -83,6 +86,9 @@ const styles = StyleSheet.create({
   titleContainer: {
     flex: 1,
     alignItems: 'center',
+    marginHorizontal: 10,
+    borderWidth: 1,
+    borderColor: 'blue',
   },
   titleIglesia: {
     fontSize: 26,
@@ -121,14 +127,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#4CAF50', // Green color
   },
-  // Table styles for collapsed borders effect
-  table: {
+  // Table styles with fix for page breaks
+  tableContainer: {
     width: '100%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
+    border: '1pt solid black',
+    borderBottom: 0,
+  },
+  tableBody: {
+    width: '100%',
   },
   tableRow: {
     flexDirection: 'row',
@@ -176,4 +182,10 @@ const styles = StyleSheet.create({
   colPredicador: {
     flex: 2, // Mediana
   },
+  footerText: {
+    fontStyle: 'italic', 
+    fontSize: 16, 
+    textAlign: 'center', 
+    marginTop: 3
+  }
 });
