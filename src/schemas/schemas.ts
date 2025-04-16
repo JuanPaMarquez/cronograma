@@ -7,3 +7,5 @@ export interface IItem {
   predicador: string
   color: string
 }
+
+export type IModificar = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, campo: keyof IItem, item: IItem) => void;

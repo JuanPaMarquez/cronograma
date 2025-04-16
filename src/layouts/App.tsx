@@ -1,21 +1,24 @@
-import { meses, headers, participantes } from "../utils/data"
+import { meses, headers, participantes, colorOptions } from "../utils/data"
 import { icons } from "../utils/icons"
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import ReportePDF from "../components/ReportePDF";
 import { IItem } from "../schemas/schemas";
 import { useState, useEffect } from "react"
+import useItem from "../hooks/useItem";
+import { Columna } from "../components/ui/filasTabla";
+import { InputTabla, SelectTabla } from "../components/ui/InputsTabla";
+import { BotonPrimary } from "../components/ui/Buttons";
 
 function App() {
   const [code, setCode] = useState<string>('C22')
   const [month, setMonth] = useState<string>(meses[new Date().getMonth()])
   const [year, setYear] = useState<string>(new Date().getFullYear().toString())
-  const [filas, setFilas] = useState(1)
   const [isDelete, setIsDelete] = useState(false)
   const [isGenerate, setIsGenerate] = useState(false)
   const [pdfData, setPdfData] = useState<IItem[]>([]);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [pdfKey, setPdfKey] = useState<string>("initial");
-  const [nextId, setNextId] = useState(1); // For generating unique IDs
+  const [nextId, setNextId] = useState(1); // Para generar IDs únicos
   const [items, setItems] = useState<IItem[]>([{
     id: 0,
     fecha: "",
@@ -26,15 +29,35 @@ function App() {
     color: "#ffffff"
   }])
 
-  // Effect to handle PDF data generation
+  const { agregarFila, modificar, agregarFilaId, eliminarFila } = useItem({
+    setItems,
+    items,
+    setPdfData,
+    setIsGenerate,
+    setPdfError,
+    nextId,
+    setNextId
+  })
+
+  useEffect(() => {
+    // Cargar los datos del localStorage al iniciar la aplicación
+    const storedItems = localStorage.getItem("items");
+    if (storedItems) {
+      const parsedItems = JSON.parse(storedItems);
+      setItems(parsedItems);
+      setNextId(parsedItems.length > 0 ? parsedItems[parsedItems.length - 1].id + 1 : 1);
+    }
+  }, []);
+
   useEffect(() => {
     if (isGenerate) {
       try {
-        // Create a stable copy of the data with sequential IDs for PDF
+        // Crea una copia estable de los datos para evitar problemas de referencia
         const stablePdfData = items.map((item, index) => ({
           ...item,
-          id: index // Reassign sequential IDs for PDF
+          id: index // Reasigna las IDs para evitar conflictos
         }));
+        localStorage.setItem("items", JSON.stringify(stablePdfData));
         setPdfData(stablePdfData);
         setPdfKey(`pdf-${Date.now()}-${stablePdfData.length}`);
         setPdfError(null);
@@ -46,71 +69,9 @@ function App() {
   }, [isGenerate, items]);
 
   function handleSchedule() {
-    console.log("Generando PDF con los siguientes datos:", items);
-    console.log("datos:", pdfData);
+    // console.log("Generando PDF con los siguientes datos:", items);
+    // console.log("datos:", pdfData);
     setIsGenerate(true);
-  }
-
-  function agregarFila() {
-    const nuevoItem: IItem = {
-      id: nextId, // Use next unique ID
-      fecha: "",
-      hora: "",
-      tipo: "",
-      director: participantes[0],
-      predicador: participantes[0],
-      color: "#ffffff"
-    }
-    setItems([...items, nuevoItem]);
-    setNextId(nextId + 1); // Increment the ID counter
-    setFilas(filas + 1);
-  }
-
-  function agregarFilaId(index: number) {
-    const nuevoItem: IItem = {
-      id: nextId, // Use next unique ID
-      fecha: "",
-      hora: "",
-      tipo: "",
-      director: participantes[0],
-      predicador: participantes[0],
-      color: "#ffffff"
-    }
-    setItems(prevItems => {
-      const copiaItems = [...prevItems];
-      copiaItems.splice(index + 1, 0, nuevoItem);
-      return copiaItems;
-    });
-    setNextId(nextId + 1); // Increment the ID counter
-    setFilas(filas + 1);
-  }
-
-  function modificar(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, campo: keyof IItem, item: IItem) {
-    const nuevosItems = items.map((i: IItem) =>
-      i.id === item.id ? { ...i, [campo]: e.target.value } : i
-    );
-    setItems(nuevosItems);
-  }
-
-  function eliminarFila(id: number) {
-    try {
-      if (items.length === 1) {
-        alert("No puedes eliminar la última fila");
-        return;
-      }
-
-      // Reset PDF generation state
-      setIsGenerate(false);
-      setPdfData([]);
-
-      // Simply filter out the item with the given ID without reassigning IDs
-      const newItems = items.filter(item => item.id !== id);
-      setItems(newItems);
-      setFilas(newItems.length);
-    } catch (err) {
-      console.error("Error al eliminar fila:", err);
-      setPdfError(err instanceof Error ? err.message : "Error al eliminar fila");
-    }
   }
 
   return (
@@ -160,17 +121,17 @@ function App() {
           />
         </label>
       </div>
-
+      { /* Tabla de datos */}
       <div id="tabla" className="w-full overflow-x-auto flex md:justify-center">
         <table className="border-2 border-gray-300 rounded-md p-2 mt-2 border-collapse overflow-x-auto">
           <thead>
             <tr>
-              {
+              { // Encabezados de Fecha, Hora, Tipo, Director, Predicador
                 headers.map(header => (
                   <th key={header.header} className={`p-2 border-2 text-lg ${header.style}`}>{header.header}</th>
                 ))
               }
-              <th className="border-2 w-8 text-center align-middle">
+              <th className="border-2 min-w-25 text-center align-middle">
                 <button
                   className="h-full flex justify-center items-center w-full"
                 >
@@ -191,23 +152,23 @@ function App() {
             {
               items.map((item, index) => (
                 <tr key={`row-${item.id}`} className="h-10">
-                  <td className="border-2 text-center align-middle">
-                    <input
-                      className="w-28"
-                      value={item.fecha}
-                      onChange={(e) => modificar(e, "fecha", item)}
-                      type="date"
+                  <Columna>
+                    <InputTabla 
+                      item={item} 
+                      type="date" 
+                      modificar={modificar} 
+                      campo="fecha"
                     />
-                  </td>
-                  <td className="border-2 text-center align-middle">
-                    <input
-                      className="w-28"
-                      type="time"
-                      value={item.hora}
-                      onChange={(e) => modificar(e, "hora", item)}
+                  </Columna>
+                  <Columna>
+                    <InputTabla 
+                      item={item} 
+                      type="time" 
+                      modificar={modificar} 
+                      campo="hora"
                     />
-                  </td>
-                  <td className="border-2 text-center align-middle">
+                  </Columna>
+                  <Columna>
                     <input
                       className="text-center text-lg focus:outline-none"
                       type="text"
@@ -215,39 +176,21 @@ function App() {
                       placeholder="Escuela Dominical.."
                       onChange={(e) => modificar(e, "tipo", item)}
                     />
-                  </td>
-                  <td className="border-2 text-center align-middle">
-                    <select
-                      className="focus:outline-none text-center text-lg"
-                      name="director"
-                      value={item.director}
-                      onChange={(e) => modificar(e, "director", item)}
-                    >
-                      {
-                        participantes.map(participante => (
-                          <option key={`director-${participante}-${item.id}`} value={participante}>
-                            {participante}
-                          </option>
-                        ))
-                      }
-                    </select>
-                  </td>
-                  <td className="border-2 text-center align-middle">
-                    <select
-                      className="focus:outline-none text-center text-lg"
-                      name="predicador"
-                      value={item.predicador}
-                      onChange={(e) => modificar(e, "predicador", item)}
-                    >
-                      {
-                        participantes.map(participante => (
-                          <option key={`predicador-${participante}-${item.id}`} value={participante}>
-                            {participante}
-                          </option>
-                        ))
-                      }
-                    </select>
-                  </td>
+                  </Columna>
+                  <Columna>
+                    <SelectTabla
+                      item={item}
+                      modificar={modificar}
+                      campo="director"
+                    />
+                  </Columna>
+                  <Columna>
+                    <SelectTabla
+                      item={item}
+                      modificar={modificar}
+                      campo="predicador"
+                    />
+                  </Columna>
                   <td className="border-2 w-30">
                     <select
                       name="color"
@@ -255,27 +198,30 @@ function App() {
                       className="w-full h-full focus:outline-none text-center text-lg"
                       onChange={(e) => modificar(e, "color", item)}
                     >
-                      <option value="#ffffff" className="bg-white">Sin color</option>
-                      <option value="#F7CAAC" className="bg-red-500">Rojo</option>
-                      <option value="#C5E0B3" className="bg-green-500">Verde</option>
-                      <option value="#B4C6E7" className="bg-blue-500">Azul</option>
-                      <option value="#FFE599" className="bg-yellow-500">Amarillo</option>
+                      { colorOptions.map((colorOption) => (
+                          <option
+                            key={`color-${colorOption.label}-${item.id}`}
+                            value={colorOption.value}
+                            className={colorOption.className}
+                          >
+                            {colorOption.label}
+                          </option>
+                        ))
+                      }
                     </select>
                   </td>
                   <td className="border-2 hover:bg-red-600">
                     {isDelete
-                      ? <button
-                        className="h-full flex justify-center items-center w-full cursor-pointer"
-                        onClick={() => eliminarFila(item.id)}
-                      >
-                        {icons.Delete}
-                      </button>
-                      : <button
-                        className="h-full flex justify-center items-center w-full cursor-pointer"
-                        onClick={() => agregarFilaId(index)}
-                      >
-                        {icons.Add}
-                      </button>
+                      ? <BotonPrimary 
+                          icons={icons.Delete}
+                          funcion={eliminarFila}
+                          valor={item.id} 
+                        />
+                      : <BotonPrimary
+                          icons={icons.Add}
+                          funcion={agregarFilaId}
+                          valor={index-1} 
+                        /> 
                     }
                   </td>
                 </tr>
