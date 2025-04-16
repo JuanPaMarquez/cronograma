@@ -1,5 +1,68 @@
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { formatearFecha, formatearHora } from '../lib/filtros';
+import { IItem } from '../schemas/schemas';
+interface IReportePDFProps {
+  mes: string;
+  anio: string;
+  datos: IItem[];
+}
+
+const ReportePDF = ({ mes, anio, datos }: IReportePDFProps) => {
+  datos = datos.map((item) => {
+    return {
+      ...item,
+      fecha: item.fecha ? formatearFecha(item.fecha) : "01/01 Lun",
+      hora: item.hora ? formatearHora(item.hora) : "00:00 AM",
+      tipo: item.tipo || "Culto",
+    };
+  });
+  
+  return (
+    <Document>
+      <Page size="LETTER" orientation='landscape' style={styles.page}>
+        {/* Header con imágenes y título */}
+        <View style={styles.header}>
+          <Image style={styles.logo} src="/logo.png" />
+          <View style={styles.titleContainer}>
+            <Text style={styles.titleIglesia}>IGLESIA CRISTIANA</Text>
+            <Text style={styles.titleCuadrangular}>CUADRANGULAR EL ZULIA</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+              <Text style={styles.titlePrograma}>PROGRAMA MES DE </Text>
+              <Text style={styles.titleMes}>{mes.toUpperCase()} </Text>
+              <Text style={styles.titleAnio}>{anio}</Text>
+            </View>
+          </View>
+          <Image style={styles.logo} src="/logo.png" />
+        </View>
+
+        {/* Tabla con bordes colapsados */}
+        <View style={styles.table}>
+          {/* Encabezado de la tabla */}
+          <View style={styles.tableHeader}>
+            <Text style={[styles.tableHeaderCell, styles.colFecha]}>FECHA</Text>
+            <Text style={[styles.tableHeaderCell, styles.colHora]}>HORA</Text>
+            <Text style={[styles.tableHeaderCell, styles.colTipo]}>TIPO</Text>
+            <Text style={[styles.tableHeaderCell, styles.colDirector]}>DIRECTOR</Text>
+            <Text style={[styles.tableHeaderCell, styles.colPredicador]}>PREDICADOR</Text>
+          </View>
+
+          {/* Filas de datos */}
+          {datos.map((item, idx) => (
+            <View style={styles.tableRow} key={idx}>
+              <Text style={[styles.tableCell, styles.colFecha, {backgroundColor: `${item.color}`}]}>{item.fecha}</Text>
+              <Text style={[styles.tableCell, styles.colHora, {backgroundColor: `${item.color}`}]}>{item.hora}</Text>
+              <Text style={[styles.tableCell, styles.colTipo, {backgroundColor: `${item.color}`}]}>{item.tipo}</Text>
+              <Text style={[styles.tableCell, styles.colDirector, {backgroundColor: `${item.color}`}]}>{item.director}</Text>
+              <Text style={[styles.tableCell, styles.colPredicador, {backgroundColor: `${item.color}`}]}>{item.predicador}</Text>
+            </View>
+          ))}
+        </View>
+      </Page>
+    </Document>
+  );
+};
+
+export default ReportePDF;
 
 // Estilos
 const styles = StyleSheet.create({
@@ -18,127 +81,99 @@ const styles = StyleSheet.create({
     height: 100,
   },
   titleContainer: {
-    position: 'relative',
-    textAlign: 'center',
+    flex: 1,
+    alignItems: 'center',
   },
-  titleShadow: {
+  titleIglesia: {
     fontSize: 26,
-    fontFamily: 'Times-Roman',
+    fontFamily: 'Times-Bold',
     fontWeight: 'bold',
-    position: 'absolute',
-    color: '#000', // Color del borde (negro)
-    left: 1, // Desplazamiento horizontal
-    top: 1, // Desplazamiento vertical
-  },
-  title: {
-    fontSize: 26,
-    fontFamily: 'Times-Roman',
-    fontWeight: 'bold',
-    color: '#FFF07D', // Color interno (amarillo suave)
     textAlign: 'center',
+    color: '#DAA520', // Gold color
+    marginBottom: 5,
   },
-  tableHeader: {
-    flexDirection: 'row',
-    borderWidth: 1,
+  titleCuadrangular: {
+    fontSize: 28,
+    fontFamily: 'Times-Bold', 
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#4682B4', // Blue color
+    marginBottom: 5,
+  },
+  titlePrograma: {
+    fontSize: 26,
+    fontFamily: 'Times-Bold',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#4CAF50', // Green color
+  },
+  titleMes: {
+    fontSize: 26,
+    fontFamily: 'Times-Bold',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#FF8C00', // Orange color
+  },
+  titleAnio: {
+    fontSize: 26,
+    fontFamily: 'Times-Bold',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#4CAF50', // Green color
+  },
+  // Table styles for collapsed borders effect
+  table: {
+    width: '100%',
     borderStyle: 'solid',
-    borderColor: '#000', // Color del borde
-    fontWeight: 'bold',
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
   },
   tableRow: {
     flexDirection: 'row',
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: '#000', // Color del borde
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+    borderBottomStyle: 'solid',
   },
-  col: {
-    flex: 1,
+  tableHeader: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+    borderBottomStyle: 'solid',
+    backgroundColor: '#f0f0f0', // Light gray background for header
+    fontWeight: 'bold',
+  },
+  tableHeaderCell: {
+    borderRightWidth: 1,
+    borderRightColor: '#000',
+    borderRightStyle: 'solid',
     justifyContent: 'center',
-    alignItems: 'center',
     textAlign: 'center',
-    borderWidth: 1,
-    borderStyle: 'solid',
+    padding: 5,
+    fontFamily: 'Helvetica-Bold',
+  },
+  tableCell: {
+    borderRightWidth: 1,
+    borderRightColor: '#000',
+    borderRightStyle: 'solid',
+    justifyContent: 'center',
+    textAlign: 'center',
+    padding: 5,
   },
   colFecha: {
-    flex: 1, // Más pequeña
+    flex: 1.2, // Más pequeña
   },
   colHora: {
-    flex: 1, // Más pequeña
+    flex: 1.1, // Más pequeña
   },
   colTipo: {
     flex: 3, // Más larga
   },
   colDirector: {
     flex: 2, // Mediana
-    backgroundColor: 'blue',
   },
   colPredicador: {
     flex: 2, // Mediana
   },
 });
-
-interface IItem {
-  id: number;
-  fecha: string;
-  hora: string;
-  tipo: string;
-  director: string;
-  predicador: string;
-}
-
-interface IReportePDFProps {
-  mes: string;
-  anio: string;
-  datos: IItem[];
-}
-
-const ReportePDF = ({ mes, anio, datos }: IReportePDFProps) => {
-  datos = datos.map((item) => {
-    return {
-      ...item,
-      fecha: item.fecha ? formatearFecha(item.fecha) : "",
-      hora: item.hora ? formatearHora(item.hora) : "",
-    };
-  })
-  return (
-  <Document>
-    <Page size="LETTER" orientation='landscape' style={styles.page}>
-      {/* Header con imágenes y título */}
-      <View style={styles.header}>
-        <Image style={styles.logo} src="/logo.png" />
-        <View style={{ flex: 1, alignItems: 'center' }}>
-          <View style={styles.titleContainer}>
-            <Text style={styles.titleShadow}>IGLESIA CRISTIANA</Text>
-            <Text style={styles.title}>IGLESIA CRISTIANA</Text>
-          </View>
-          {/* <Text style={[styles.title, {color: 'yellow'}]}>IGLESIA CRISTIANA</Text> */}
-          <Text style={[styles.title, {color: 'blue'}]}>CUADRANGULAR EL ZULIA</Text>
-          <Text style={[styles.title, {color: 'green'}]}>PROGRAMA MES DE <Text style={{color: 'red'}}>{mes.toUpperCase()}</Text> {anio}</Text>
-        </View>
-        <Image style={styles.logo} src="/logo.png" />
-      </View>
-
-      {/* Tabla */}
-      <View style={styles.tableHeader}>
-        <Text style={[styles.col, styles.colFecha]}>FECHA</Text>
-        <Text style={[styles.col, styles.colHora]}>HORA</Text>
-        <Text style={[styles.col, styles.colTipo]}>TIPO</Text>
-        <Text style={[styles.col, styles.colDirector]}>DIRECTOR</Text>
-        <Text style={[styles.col, styles.colPredicador]}>PREDICADOR</Text>
-      </View>
-
-      {datos.map((item, idx) => (
-        <View style={styles.tableRow} key={idx}>
-          <Text style={[styles.col, styles.colFecha]}>{item.fecha}</Text>
-          <Text style={[styles.col, styles.colHora]}>{item.hora}</Text>
-          <Text style={[styles.col, styles.colTipo]}>{item.tipo}</Text>
-          <Text style={[styles.col, styles.colDirector]}>{item.director}</Text>
-          <Text style={[styles.col, styles.colPredicador]}>{item.predicador}</Text>
-        </View>
-      ))}
-    </Page>
-  </Document>
-)};
-
-export default ReportePDF;

@@ -1,19 +1,9 @@
 import { meses, headers, participantes } from "../utils/data"
 import { icons } from "../utils/icons"
-// import { PDFDownloadLink } from '@react-pdf/renderer';
-// import ReportePDF from "../components/ReportePDF";
-import { generarPDF } from "../components/generarPDF";
-
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import ReportePDF from "../components/ReportePDF";
+import { IItem } from "../schemas/schemas";
 import { useState } from "react"
-
-interface IItem {
-  id: number
-  fecha: string,
-  hora: string,
-  tipo: string,
-  director: string,
-  predicador: string
-}
 
 function App() {
 
@@ -22,7 +12,7 @@ function App() {
   const [year, setYear] = useState<string>(new Date().getFullYear().toString())
   const [filas, setFilas] = useState(1)
   const [isDelete, setIsDelete] = useState(false)
-  // const [isGenerate, setIsGenerate] = useState(false)
+  const [isGenerate, setIsGenerate] = useState(false)
 
   const [items, setItems] = useState<IItem[]>([{
     id: 0,
@@ -30,27 +20,14 @@ function App() {
     hora: "",
     tipo: "",
     director: participantes[0],
-    predicador: participantes[0]
+    predicador: participantes[0],
+    color: "#ffffff"
   }])
 
-  // function handleSchedule() {
-  //   setIsGenerate(true)
-  // }
-
-  const handleClick = async () => {
-    const pdfBytes = await generarPDF({ mes: month, anio: year, datos: items });
-  
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    // Crear un enlace temporal para descargar el archivo
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Cronograma Iglesia Cristiana (${code}) ${month} ${year}.pdf`; // Nombre del archivo
-    link.click();
-
-    // Liberar el objeto URL después de la descarga
-    URL.revokeObjectURL(url);
-  };
+  function handleSchedule() {
+    console.log(items)
+    setIsGenerate(true)
+  }
 
   function agregarFila() {
     setFilas(filas+1)
@@ -60,7 +37,8 @@ function App() {
       hora: "",
       tipo: "",
       director: participantes[0],
-      predicador: participantes[0]
+      predicador: participantes[0],
+      color: "#ffffff"
     }
     setItems([...items, nuevoItem])
   }
@@ -73,7 +51,8 @@ function App() {
       hora: "",
       tipo: "",
       director: participantes[0],
-      predicador: participantes[0]
+      predicador: participantes[0],
+      color: "#ffffff"
     }
     setItems(prevItems => {
       const copiaItems = [...prevItems];
@@ -100,6 +79,13 @@ function App() {
   return (
     <div className="min-h-screen pb-20 flex flex-col items-center bg-gray-200 gap-2">
       <h1 className="pt-5 text-2xl font-bold text-center">Cronograma Iglesia del Zulia</h1>
+      <a 
+        href="https://juanpamarquez.github.io/portfolio/" 
+        target="_blank"
+        className="text-lg font-bold text-center hover:text-blue-500"
+      >
+        By Juan Pablo Marquez
+      </a>
       <div id="config" className="flex gap-3 flex-col sm:flex-row items-center">
         <label htmlFor="code" className="flex gap-2 items-center">
           <span>Codigo:</span>
@@ -147,6 +133,13 @@ function App() {
                   <th key={header.header} className={`p-2 border-2 text-lg ${header.style}`}>{header.header}</th>
                 ))
               }
+              <th className="border-2 w-8 text-center align-middle">
+                <button 
+                  className="h-full flex justify-center items-center w-full"
+                >
+                  { icons.Pincel }
+                </button>
+              </th>
               <th className="border-2 w-8 text-center align-middle hover:bg-blue-400">
                 <button 
                   className="h-full flex justify-center items-center w-full cursor-pointer"
@@ -210,6 +203,19 @@ function App() {
                       }
                     </select>
                   </td>
+                  <td className="border-2 w-30">
+                    <select 
+                      name="color" 
+                      className="w-full h-full focus:outline-none text-center text-lg"
+                      onChange={(e) => modificar(e, "color", item)}
+                    >
+                      <option value="#ffffff" className="bg-white">Sin color</option>
+                      <option value="#F7CAAC" className="bg-red-500">Rojo</option>
+                      <option value="#C5E0B3" className="bg-green-500">Verde</option>
+                      <option value="#B4C6E7" className="bg-blue-500">Azul</option>
+                      <option value="#FFE599" className="bg-yellow-500">Amarillo</option>
+                    </select>
+                  </td>
                   <td className="border-2 hover:bg-red-600">
                     { isDelete
                       ? <button 
@@ -241,11 +247,11 @@ function App() {
 
       <button 
         className="border-2 font-bold rounded-md p-2 px-5 mt-2 hover:bg-black hover:text-white cursor-pointer"
-        onClick={handleClick}
+        onClick={handleSchedule}
       >
         Generar PDF
       </button>
-{/* 
+
       {isGenerate && (
         <PDFDownloadLink
           document={<ReportePDF mes={month} anio={year} datos={items} />}
@@ -261,7 +267,7 @@ function App() {
         >
           {({ loading }) => (loading ? 'Generando PDF...' : 'Descargar PDF')}
         </PDFDownloadLink>
-      )} */}
+      )}
 
     </div>
   )
