@@ -138,7 +138,7 @@ function App() {
         </label>
       </div>
 
-      <div id="tabla" className="w-full flex md:justify-center">
+      <div id="tabla" className="w-full overflow-x-auto flex md:justify-center">
         <table className="border-2 border-gray-300 rounded-md p-2 mt-2 border-collapse overflow-x-auto">
           <thead>
             <tr>
