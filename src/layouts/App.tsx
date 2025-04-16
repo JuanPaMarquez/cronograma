@@ -5,7 +5,7 @@ import ReportePDF from "../components/ReportePDF";
 import { IItem } from "../schemas/schemas";
 import { useState, useEffect } from "react"
 import useItem from "../hooks/useItem";
-import { Columna } from "../components/ui/filasTabla";
+import { Columna } from "../components/ui/FilasTabla";
 import { InputTabla, SelectTabla } from "../components/ui/InputsTabla";
 import { BotonPrimary } from "../components/ui/Buttons";
 
