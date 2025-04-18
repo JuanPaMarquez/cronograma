@@ -152,7 +152,7 @@ function App() {
             {
               items.map((item, index) => (
                 <tr key={`row-${item.id}`} className="h-10">
-                  <Columna>
+                  <Columna color={item.color}>
                     <InputTabla 
                       item={item} 
                       type="date" 
@@ -160,7 +160,7 @@ function App() {
                       campo="fecha"
                     />
                   </Columna>
-                  <Columna>
+                  <Columna color={item.color}>
                     <InputTabla 
                       item={item} 
                       type="time" 
@@ -168,34 +168,36 @@ function App() {
                       campo="hora"
                     />
                   </Columna>
-                  <Columna>
-                    <input
-                      className="text-center text-lg focus:outline-none"
+                  <Columna color={item.color}>
+                    <InputTabla
+                      item={item}
                       type="text"
-                      value={item.tipo}
+                      modificar={modificar}
+                      campo="tipo"
+                      className="text-center text-lg focus:outline-none"
                       placeholder="Escuela Dominical.."
-                      onChange={(e) => modificar(e, "tipo", item)}
                     />
                   </Columna>
-                  <Columna>
+                  <Columna color={item.color}>
                     <SelectTabla
                       item={item}
                       modificar={modificar}
                       campo="director"
                     />
                   </Columna>
-                  <Columna>
+                  <Columna color={item.color}>
                     <SelectTabla
                       item={item}
                       modificar={modificar}
                       campo="predicador"
                     />
                   </Columna>
-                  <td className="border-2 w-30">
+                  <td className="border-2 w-30" style={{ backgroundColor: item.color }} >
                     <select
                       name="color"
                       value={item.color}
                       className="w-full h-full focus:outline-none text-center text-lg"
+                      
                       onChange={(e) => modificar(e, "color", item)}
                     >
                       { colorOptions.map((colorOption) => (

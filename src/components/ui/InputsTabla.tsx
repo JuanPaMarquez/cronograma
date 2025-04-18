@@ -5,18 +5,23 @@ export function InputTabla({
   item, 
   modificar, 
   type, 
-  campo 
+  campo,
+  className = 'w-28',
+  placeholder,
 }:{ 
   item: IItem; 
   modificar: IModificar; 
   type: string; 
   campo: keyof IItem 
+  className?: string
+  placeholder?: string;
 }){
   return (
     <input
-      className="w-28"
+      className={className}
       type={type}
       value={item[campo]}
+      placeholder={placeholder}
       onChange={(e) => modificar(e, campo, item)}
     />
   )
