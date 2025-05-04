@@ -32,7 +32,8 @@ const participantes = [
   "Pastora Stella",
   "Rodrigo Marquez",
   "Nohora E Sanchez",
-  "Juan P Marquez"
+  "Juan P Marquez",
+  "Cecilia Marquez"
 ]
 
 const colorOptions = [
