@@ -44,9 +44,10 @@ const colorOptions = [
   { value: "#F7CAAC", className: "bg-red-500", label: "Rojo" },
   { value: "#C5E0B3", className: "bg-green-500", label: "Verde" },
   { value: "#B4C6E7", className: "bg-blue-500", label: "Azul" },
-  { value: "#14b8a6", className: "bg-teal-500", label: "Verde-Azulado" },
+  { value: "#b4e7de", className: "bg-teal-500", label: "Verde-Azulado" },
   { value: "#FFE599", className: "bg-yellow-500", label: "Amarillo" },
 ]
 
 
 export {meses, headers, participantes, colorOptions};
+
